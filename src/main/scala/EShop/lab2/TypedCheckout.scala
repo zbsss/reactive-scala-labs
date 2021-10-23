@@ -8,6 +8,7 @@ import scala.language.postfixOps
 
 import scala.concurrent.duration._
 import EShop.lab3.OrderManager
+import EShop.lab3.Payment
 
 object TypedCheckout {
 
@@ -59,7 +60,11 @@ class TypedCheckout(
   )
   def selectingPaymentMethod(timer: Cancellable): Behavior[TypedCheckout.Command] = Behaviors.receive((context, msg) =>
     msg match {
-      case SelectPayment(payment) => timer.cancel(); processingPayment(startPaymentTimer(context))
+      case SelectPayment(payment, orderManagerRef) => 
+        timer.cancel(); 
+        val paymentActor = context.spawn(new Payment(payment, orderManagerRef, context.self).start, "paymentActor")
+        orderManagerRef ! OrderManager.ConfirmPaymentStarted(paymentActor)
+        processingPayment(startPaymentTimer(context))
       case ExpireCheckout => cancelled
       case CancelCheckout => timer.cancel(); cancelled
       case _ => Behaviors.same
@@ -68,7 +73,10 @@ class TypedCheckout(
 
   def processingPayment(timer: Cancellable): Behavior[TypedCheckout.Command] = Behaviors.receive((context, msg) =>
     msg match {
-      case ConfirmPaymentReceived => timer.cancel(); closed
+      case ConfirmPaymentReceived => 
+        timer.cancel();
+        cartActor ! TypedCartActor.ConfirmCheckoutClosed
+        closed
       case ExpirePayment => cancelled
       case CancelCheckout => timer.cancel(); cancelled
       case _ => Behaviors.same
@@ -85,5 +93,5 @@ class TypedCheckout(
     msg match {
       case _ => context.log.info("Checkout Closed"); Behaviors.same
     }
-  )
+  ) // TODO: stop this actor?
 }
