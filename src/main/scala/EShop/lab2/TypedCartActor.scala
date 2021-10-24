@@ -20,6 +20,7 @@ object TypedCartActor {
   case object ConfirmCheckoutCancelled                                      extends Command
   case object ConfirmCheckoutClosed                                         extends Command
   case class GetItems(sender: ActorRef[Cart])                               extends Command
+  case class WrappedCheckoutEvent(event: TypedCheckout.Event)               extends Command
 
   sealed trait Event
   case class CheckoutStarted(checkoutRef: ActorRef[TypedCheckout.Command]) extends Event
@@ -55,7 +56,9 @@ class TypedCartActor {
         case AddItem(item) => timer.cancel(); nonEmpty(cart.addItem(item), scheduleTimer(context))
         case StartCheckout(orderManagerRef) =>
           timer.cancel();
-          val checkoutActor = context.spawn(new TypedCheckout(context.self).start, "checkoutActor")
+          val messageAdapter: ActorRef[TypedCheckout.Event] =
+            context.messageAdapter(event => event match { case TypedCheckout.CheckOutClosed => ConfirmCheckoutClosed })
+          val checkoutActor = context.spawn(new TypedCheckout(messageAdapter).start, "checkoutActor")
           checkoutActor ! TypedCheckout.StartCheckout
           orderManagerRef ! OrderManager.ConfirmCheckoutStarted(checkoutActor)
           inCheckout(cart)
@@ -70,8 +73,8 @@ class TypedCartActor {
   def inCheckout(cart: Cart): Behavior[TypedCartActor.Command] = Behaviors.receive((context, msg) =>
     msg match {
       case ConfirmCheckoutCancelled => nonEmpty(cart, scheduleTimer(context))
-      case ConfirmCheckoutClosed    => empty
-      case _                        => Behaviors.same
+      case ConfirmCheckoutClosed => empty
+      case _ => Behaviors.same
     }
   )
 }
