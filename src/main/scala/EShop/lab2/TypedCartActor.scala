@@ -88,8 +88,8 @@ class TypedCartActor {
   def inCheckout(cart: Cart): Behavior[TypedCartActor.Command] = Behaviors.receive((context, msg) =>
     msg match {
       case ConfirmCheckoutCancelled => nonEmpty(cart, scheduleTimer(context))
-      case ConfirmCheckoutClosed => empty
-      case _ => Behaviors.same
+      case ConfirmCheckoutClosed    => empty
+      case _                        => Behaviors.same
     }
   )
 }

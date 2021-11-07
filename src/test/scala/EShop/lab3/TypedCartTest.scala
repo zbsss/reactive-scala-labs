@@ -24,7 +24,7 @@ class TypedCartTest
   //use GetItems command which was added to make test easier
   it should "add item properly" in {
     val testKit = BehaviorTestKit(new TypedCartActor().start)
-    val inbox = TestInbox[Cart]()
+    val inbox   = TestInbox[Cart]()
 
     testKit.run(TypedCartActor.AddItem("first"))
     testKit.run(TypedCartActor.AddItem("second"))
@@ -35,8 +35,8 @@ class TypedCartTest
 
   it should "be empty after adding and removing the same item" in {
     val testKit = BehaviorTestKit(new TypedCartActor().start)
-    val inbox = TestInbox[Cart]()
-    val item = "some item"
+    val inbox   = TestInbox[Cart]()
+    val item    = "some item"
 
     testKit.run(TypedCartActor.AddItem(item))
     testKit.run(TypedCartActor.RemoveItem(item))
@@ -46,7 +46,7 @@ class TypedCartTest
   }
 
   it should "start checkout" in {
-    val cart = testKit.spawn(new TypedCartActor().start, "cartActor")
+    val cart  = testKit.spawn(new TypedCartActor().start, "cartActor")
     val probe = testKit.createTestProbe[OrderManager.Command]()
 
     cart ! AddItem("first")
