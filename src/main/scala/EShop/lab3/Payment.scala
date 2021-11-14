@@ -18,6 +18,13 @@ class Payment(
 
   import Payment._
 
-  def start: Behavior[Payment.Command] = ???
-
+  def start: Behavior[Payment.Command] = Behaviors.receive { (context, msg) =>
+    msg match {
+      case DoPayment =>
+        orderManager ! OrderManager.ConfirmPaymentReceived
+        checkout ! TypedCheckout.ConfirmPaymentReceived
+        Behaviors.same // TODO: stop this actor?
+      case _ => Behaviors.same
+    }
+  }
 }
