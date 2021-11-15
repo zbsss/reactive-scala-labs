@@ -1,17 +1,10 @@
 package EShop.lab5
 
-import EShop.lab5.PaymentService.{PaymentClientError, PaymentServerError, PaymentSucceeded}
+import EShop.lab5.PaymentService.{PaymentClientError, PaymentSucceeded}
 import akka.actor.testkit.typed.scaladsl.ScalaTestWithActorTestKit
 import akka.actor.typed.ChildFailed
 import akka.actor.typed.scaladsl.Behaviors
-import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
-import akka.testkit.{ImplicitSender, TestActorRef, TestKit, TestProbe}
-import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.flatspec.AnyFlatSpecLike
-import org.scalatest.matchers.should.Matchers
-
-import scala.concurrent.duration._
-import scala.concurrent.Future
 
 class PaymentServiceTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike {
 
@@ -32,7 +25,7 @@ class PaymentServiceTest extends ScalaTestWithActorTestKit with AnyFlatSpecLike 
       context.watch(paymentService)
 
       Behaviors.receiveSignal[Any] {
-        case (context, cf: ChildFailed) if cf.cause == PaymentServerError() =>
+        case (context, cf: ChildFailed) if cf.cause == PaymentClientError() =>
           failure.ref ! "failed"
           Behaviors.same
       }
