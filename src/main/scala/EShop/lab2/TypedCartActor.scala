@@ -1,5 +1,6 @@
 package EShop.lab2
 
+import EShop.lab3.OrderManager
 import akka.actor.Cancellable
 import akka.actor.typed.scaladsl.{ActorContext, Behaviors}
 import akka.actor.typed.{ActorRef, Behavior}
@@ -8,7 +9,6 @@ import scala.language.postfixOps
 import scala.concurrent.ExecutionContext.Implicits.global
 
 import scala.concurrent.duration._
-import EShop.lab3.OrderManager
 
 object TypedCartActor {
 
@@ -88,8 +88,8 @@ class TypedCartActor {
   def inCheckout(cart: Cart): Behavior[TypedCartActor.Command] = Behaviors.receive((context, msg) =>
     msg match {
       case ConfirmCheckoutCancelled => nonEmpty(cart, scheduleTimer(context))
-      case ConfirmCheckoutClosed => empty
-      case _ => Behaviors.same
+      case ConfirmCheckoutClosed    => empty
+      case _                        => Behaviors.same
     }
   )
 }
